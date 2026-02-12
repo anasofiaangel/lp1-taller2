@@ -6,30 +6,38 @@ Objetivo: Crear un servidor TCP que acepte una conexión y intercambie mensajes 
 
 import socket
 
-# TODO: Definir la dirección y puerto del servidor
+def servidor_tcp():
+    # Definir dirección y puerto del servidor
+    server_address = ('localhost', 65432)  # Cambia según necesidad
 
-# TODO: Crear un socket TCP/IP
-# AF_INET: socket de familia IPv4
-# SOCK_STREAM: socket de tipo TCP (orientado a conexión)
+    # Crear un socket TCP/IP
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# TODO: Enlazar el socket a la dirección y puerto especificados
+    # Enlazar el socket a la dirección y puerto especificados
+    sock.bind(server_address)
 
-# TODO: Poner el socket en modo escucha
-# El parámetro define el número máximo de conexiones en cola
+    # Poner el socket en modo escucha
+    sock.listen(1)  # máximo 1 conexión en cola
 
-print("Servidor a la espera de conexiones ...")
+    print("Servidor a la espera de conexiones ...")
 
-# TODO: Aceptar una conexión entrante
-# accept() bloquea hasta que llega una conexión
-# conn: nuevo socket para comunicarse con el cliente
-# addr: dirección y puerto del cliente
+    # Aceptar una conexión entrante
+    conn, addr = sock.accept()
+    print(f"Conexión realizada por {addr}")
 
-print(f"Conexión realizada por {addr}")
+    try:
+        # Recibir datos del cliente
+        datos = conn.recv(1024)
+        print(f"Recibido: {datos.decode('utf-8')}")
 
-# TODO: Recibir datos del cliente (hasta 1024 bytes)
- 
-# TODO: Enviar respuesta al cliente (convertida a bytes)
-# sendall() asegura que todos los datos sean enviados
+        # Enviar respuesta al cliente
+        respuesta = "Hola cliente, recibí tu mensaje!"
+        conn.sendall(respuesta.encode('utf-8'))
 
-# TODO: Cerrar la conexión con el cliente
+    finally:
+        # Cerrar la conexión con el cliente
+        print("Cerrando conexión con el cliente")
+        conn.close()
 
+if __name__ == "__main__":
+    servidor_tcp()
