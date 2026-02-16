@@ -1,0 +1,91 @@
+import socket
+import threading
+
+BUFFER_SIZE = 8192
+
+def handle_client(client_socket):
+    request = client_socket.recv(BUFFER_SIZE)
+
+    # Convertimos la petición a string para analizarla
+    request_line = request.split(b"\r\n")[0].decode()
+    print(f"[LOG] Petición recibida: {request_line}")
+
+    # Extraemos método y destino
+    method, path, protocol = request_line.split()
+
+    if method.upper() == "CONNECT":
+        # Manejo de HTTPS (túnel)
+        host, port = path.split(":")
+        port = int(port)
+
+        try:
+            remote_socket = socket.create_connection((host, port))
+            client_socket.sendall(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+
+            # Reenvío bidireccional
+            threading.Thread(target=forward, args=(client_socket, remote_socket)).start()
+            threading.Thread(target=forward, args=(remote_socket, client_socket)).start()
+        except Exception as e:
+            print(f"[ERROR] No se pudo conectar a {host}:{port} -> {e}")
+            client_socket.close()
+
+    else:
+        # Peticiones HTTP normales
+        try:
+            # Extraemos host del header
+            headers = request.decode().split("\r\n")
+            host_header = [h for h in headers if h.lower().startswith("host:")][0]
+            host = host_header.split(":")[1].strip()
+            port = 80
+
+            # Conexión al servidor destino
+            remote_socket = socket.create_connection((host, port))
+
+            # Ejemplo de modificación de headers
+            modified_request = request.replace(b"User-Agent:", b"User-Agent: ProxyDemo")
+
+            remote_socket.sendall(modified_request)
+
+            # Reenvío de respuesta al cliente
+            while True:
+                data = remote_socket.recv(BUFFER_SIZE)
+                if not data:
+                    break
+                client_socket.sendall(data)
+
+            remote_socket.close()
+            client_socket.close()
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            client_socket.close()
+
+
+def forward(source, destination):
+    """Reenvía datos entre sockets (para túneles HTTPS)."""
+    try:
+        while True:
+            data = source.recv(BUFFER_SIZE)
+            if not data:
+                break
+            destination.sendall(data)
+    except:
+        pass
+    finally:
+        source.close()
+        destination.close()
+
+
+def start_proxy(port=8888):
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(("0.0.0.0", port))
+    server.listen(100)
+    print(f"[INFO] Proxy escuchando en puerto {port}...")
+
+    while True:
+        client_socket, addr = server.accept()
+        print(f"[INFO] Conexión desde {addr}")
+        threading.Thread(target=handle_client, args=(client_socket,)).start()
+
+
+if __name__ == "__main__":
+    start_proxy()
