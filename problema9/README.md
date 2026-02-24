@@ -13,4 +13,4 @@
 - Health checks entre servidores
 - Distribución de clientes
 - Sincronización de datos
-
+Se prueba con los nombres balanceador de carga.py y servidor.backed.py
