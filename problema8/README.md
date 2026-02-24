@@ -13,4 +13,4 @@
 - Matchmaking de jugadores
 - Validación de movimientos
 - Sistema de espectadores
-
+Se prueba con el nombre: servidor de juegos.py
