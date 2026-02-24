@@ -14,3 +14,4 @@
 - Mensajes privados entre usuarios
 - Persistencia básica de salas
 
+Se prueba con el nombre de cada carpeta: chat de salas
