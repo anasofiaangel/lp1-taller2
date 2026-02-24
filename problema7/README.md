@@ -14,3 +14,4 @@
 - Reenviar datos bidireccional
 - Manejar HTTPS (CONNECT method)
 
+Se prueba con el nombre: inter de red 
